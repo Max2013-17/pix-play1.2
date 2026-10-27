@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101725"><title>Pixel Forge — редактор</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}body{margin:0;background:#0b111c;color:#f2f5ff;font:14px system-ui,sans-serif}button,input{font:inherit}button{user-select:none;-webkit-user-select:none;touch-action:manipulation;border:1px solid #35445b;border-radius:10px;padding:9px;background:#202c3e;color:#fff;touch-action:manipulation}button.active{background:#41376d;border-color:#b4a5ff;box-shadow:inset 0 0 0 1px #b4a5ff}button.primary{background:#7967ed;border-color:#7967ed;font-weight:700}.app{max-width:1000px;margin:auto;padding:12px}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.logo{font-size:20px;font-weight:950}.logo span{color:#a99cff}.muted{color:#a9b7ca;font-size:12px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:12px}.panel{background:#151e2c;border:1px solid #34445b;border-radius:14px;padding:12px;min-width:0}.title{font-weight:800;margin-bottom:8px}.stage{overflow:hidden;height:min(58vh,520px);min-height:240px;background:#dceafa;border-radius:9px;border:1px solid #4b607a;touch-action:none}.stage canvas{display:block;width:100%;height:100%;image-rendering:pixelated;touch-action:none} .camcontrols{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 7px}.camcontrols button{font-size:11px;padding:5px 8px}.status{min-height:28px;color:#d0c9ff;padding-top:8px;font-size:12px}.section{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #34445b}.section:last-child{border:0;margin:0}.name{width:100%;padding:9px;border:1px solid #34445b;background:#0b1320;color:white;border-radius:8px;margin-bottom:7px}.field{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0}.field input{width:85px;padding:7px;background:#0b1320;border:1px solid #34445b;color:white;border-radius:8px}.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tools button{padding:8px 2px;font-size:12px;min-height:39px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions button{font-size:12px;padding:8px 3px}.hint{font-size:11px;color:#a9b7ca;line-height:1.45;margin-top:7px}.levels{display:grid;gap:6px;margin-top:7px}.level{display:flex;align-items:center;gap:5px;border:1px solid #34445b;border-radius:8px;padding:6px}.level strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.level button{padding:5px 7px}.share{display:none;margin-top:8px}.share input{width:100%;padding:8px;background:#0b1320;border:1px solid #34445b;color:white;border-radius:8px}.pad{display:none;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.pad button{font-size:21px;min-height:48px;user-select:none}.color{height:38px!important;padding:3px!important;width:70px!important}
+@media(max-width:720px){.app{padding:8px}.layout{grid-template-columns:1fr}.logo{font-size:18px}.panel{padding:10px}.stage{height:40vh;min-height:220px}.tools{grid-template-columns:repeat(4,1fr)}.tools button{font-size:11px}.pad{display:grid}.actions button{min-height:42px}}
+</style></head><body><div class="app">
+<header class="head"><div><div class="logo">▦ PIXEL <span>FORGE</span></div><div class="muted">СТРОЙ · ИГРАЙ · ДЕЛИСЬ</div></div><span class="muted" id="mode">РЕДАКТОР</span></header>
+<div class="layout"><main class="panel">
+<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px"><div><div class="title">Игровое поле</div><div class="muted" id="dim">24 × 14 клеток</div></div><div class="muted" id="count">0 блоков</div></div>
+<div class="camcontrols"><button id="camLeft">◀ Влево</button><button id="camRight">Вправо ▶</button><button id="camUp">▲ Вверх</button><button id="camDown">▼ Вниз</button><button id="camHome">⌂ К началу</button></div><div class="stage" id="stage"><canvas id="board" width="720" height="420"></canvas></div><div class="status" id="status">Выбери инструмент и рисуй по клеткам.</div>
+<div class="pad" id="pad"><span></span><button data-move="jump">⬆ Прыжок</button><span></span><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div>
+<div class="hint">В игре: ← → движение, ↑ / W / пробел — прыжок. На телефоне удерживай ◀ или ▶, а прыжок нажимай отдельно.</div>
+</main>
+<aside class="panel">
+<div class="section"><div class="title">Название уровня</div><input class="name" id="name" maxlength="55" value="Мой уровень">
+<div class="field"><label>Ширина (8–500)</label><input id="width" type="number" min="8" max="500" value="24"></div><div class="field"><label>Высота (8–60)</label><input id="height" type="number" min="8" max="60" value="14"></div><button class="primary" id="new" style="width:100%">Создать пустую карту</button></div>
+<div class="section"><div class="title">Инструменты</div><div class="tools" id="tools">
+<button class="active" data-tool="draw">✍ Рисовать</button><button data-tool="grass">🟩 Земля</button><button data-tool="stone">⬛ Камень</button><button data-tool="platform">🟫 Платформа</button><button data-tool="spike">🔺 Шипы</button><button data-tool="coin">🟡 Монета</button><button data-tool="spring">🟪 Прыгучка</button><button data-tool="start">🟢 Старт</button><button data-tool="finish">🏁 Финиш</button><button data-tool="erase">🧽 Стереть</button></div>
+<div class="field"><label>Цвет своего блока</label><input class="color" id="color" type="color" value="#ff4dca"></div><div class="field"><label>Цвет шипов</label><input class="color" id="spikeColor" type="color" value="#ff365e"></div><div class="field"><label>Название блока</label><input id="customName" value="Неон" maxlength="16" style="width:100px"></div><button data-tool="custom" id="customTool" style="width:100%;margin-top:4px">🎨 Выбрать свой блок</button><div class="hint">«Рисовать» — непрерывная кисть землёй. Свой блок можно красить выбранным цветом.</div></div>
+<div class="section"><div class="title">Действия</div><div class="actions"><button class="primary" id="play">▶ Играть</button><button id="undo">↶ Отмена</button><button id="save">💾 Сохранить</button><button id="clear">Очистить</button><button class="primary" id="share">🔗 Поделиться</button><button id="export">⇩ Экспорт</button><button id="import">⇧ Импорт</button><button id="zoom">🔎 Масштаб</button></div><input id="file" type="file" accept=".json,application/json" hidden>
+<div class="share" id="sharebox"><div class="hint">Ссылка содержит уровень. Она откроется у друга, если сайт размещён в интернете.</div><input id="url" readonly><div class="actions" style="margin-top:7px"><button class="primary" id="copy">Копировать ссылку</button><button id="closeShare">Закрыть</button></div></div></div>
+<div class="section"><div class="title">Мои уровни</div><div id="levels" class="levels"><div class="hint">Сохрани карту, чтобы увидеть её здесь.</div></div></div>
+</aside></div></div>
+<div id="victory" style="display:none;position:fixed;inset:0;z-index:9;background:#03050cee;align-items:center;justify-content:center;padding:18px"><div style="width:min(430px,100%);background:#151e2c;border:1px solid #7669db;border-radius:18px;padding:20px"><div style="color:#b3a7ff;font-size:11px;letter-spacing:.12em">УРОВЕНЬ ПРОЙДЕН</div><h2 style="margin:8px 0 4px">🎉 Победа!</h2><p id="victoryName" class="muted"></p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:#202c3e;padding:12px;border-radius:10px">ПОПЫТКИ<br><strong id="attemptStat" style="font-size:24px">1</strong></div><div style="background:#202c3e;padding:12px;border-radius:10px">МОНЕТЫ<br><strong id="coinStat" style="font-size:24px">0/0</strong></div></div><p class="hint">Отправь ссылку другу, чтобы он открыл этот уровень.</p><input id="victoryUrl" readonly style="width:100%;padding:9px;background:#0b1320;border:1px solid #34445b;border-radius:8px;color:white"><div class="actions" style="margin-top:9px"><button class="primary" id="victoryCopy">Копировать ссылку</button><button id="retry">Ещё раз</button><button id="toEditor" style="grid-column:1/-1">Вернуться в редактор</button></div></div></div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),canvas=$('board'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;
+const COLORS={grass:'#39a95c',stone:'#5a687b',platform:'#ad784d',spike:'#ed5364',coin:'#ffd044',start:'#28c994',finish:'#8d78ff',spring:'#7d5cff',custom:'#ff4dca'};
+let w=24,h=14,cell=30,map=[],tool='draw',customColor='#ff4dca',spikeColor='#ff365e',customName='Неон',history=[],drawing=false,lastCell=-1,scale=30,cameraX=0,cameraY=0,panStart=null;
+let playing=false,won=false,attempts=0,coins=0,totalCoins=0,player={x:0,y:0,vx:0,vy:0,ground:false},held={left:false,right:false},jumpPressed=false,lastTick=0;
+function msg(t){$('status').textContent=t}
+function idx(x,y){return y*w+x}
+function tileAt(x,y){if(x<0||x>=w||y<0||y>=h)return 'stone';return map[idx(x,y)]}
+function solid(t){return ['grass','stone','platform','custom','spring'].includes(t)}
+function resizeCanvas(){const stage=$('stage');canvas.width=Math.max(320,Math.floor(stage.clientWidth||720));canvas.height=Math.max(220,Math.floor(stage.clientHeight||420));cameraX=Math.max(0,Math.min(Math.max(0,w*scale-canvas.width),cameraX));cameraY=Math.max(0,Math.min(Math.max(0,h*scale-canvas.height),cameraY));$('dim').textContent=w+' × '+h+' клеток'}
+function drawTile(x,y,t){if(!t)return;const X=x*scale-cameraX,Y=y*scale-cameraY;if(t!=='spike'){ctx.fillStyle=t==='custom'?customColor:(COLORS[t]||'#888');ctx.fillRect(X+1,Y+1,scale-2,scale-2);}
+ if(t==='grass'){ctx.fillStyle='#247d43';ctx.fillRect(X+1,Y+1,scale-2,5)}
+ if(t==='platform'){ctx.fillStyle='#d5a06d';ctx.fillRect(X+1,Y+1,scale-2,5)}
+ if(t==='stone'||t==='custom'){ctx.strokeStyle=t==='custom'?'#ffffff77':'#8995a7';ctx.strokeRect(X+5,Y+5,scale-10,scale-10)}
+ if(t==='spike'){ctx.fillStyle=spikeColor;ctx.beginPath();ctx.moveTo(X+2,Y+scale-2);ctx.lineTo(X+scale/2,Y+3);ctx.lineTo(X+scale-2,Y+scale-2);ctx.closePath();ctx.fill();ctx.strokeStyle='#6d1d36';ctx.lineWidth=Math.max(1,scale*.06);ctx.stroke()}
+ if(t==='coin'){
+    const cx=X+scale/2,cy=Y+scale/2,r=scale*.31;
+    ctx.fillStyle='#f5b900';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#8b5a00';ctx.lineWidth=Math.max(1.5,scale*.055);ctx.stroke();
+    ctx.fillStyle='#fff3a6';ctx.beginPath();ctx.arc(cx-scale*.07,cy-scale*.08,r*.57,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd43b';ctx.beginPath();ctx.arc(cx,cy,r*.68,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff7c9';ctx.beginPath();ctx.arc(cx-scale*.08,cy-scale*.09,r*.18,0,Math.PI*2);ctx.fill();
+  }
+ if(t==='spring'){
+    ctx.fillStyle='#7d5cff';ctx.fillRect(X+scale*.08,Y+scale*.64,scale*.84,scale*.25);
+    ctx.strokeStyle='#d9ccff';ctx.lineWidth=Math.max(2,scale*.07);ctx.beginPath();
+    ctx.moveTo(X+scale*.18,Y+scale*.62);ctx.lineTo(X+scale*.32,Y+scale*.35);ctx.lineTo(X+scale*.46,Y+scale*.62);ctx.lineTo(X+scale*.60,Y+scale*.35);ctx.lineTo(X+scale*.78,Y+scale*.62);ctx.stroke();
+  }
+  if(t==='start'){ctx.fillStyle='#28c994';ctx.beginPath();ctx.arc(X+scale/2,Y+scale/2,scale*.32,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('S',X+scale/2,Y+scale*.67)}
+  if(t==='finish'){
+    // Flagpole and checkered flag
+    ctx.strokeStyle='#34445b';ctx.lineWidth=Math.max(2,scale*.07);ctx.beginPath();ctx.moveTo(X+scale*.25,Y+scale*.9);ctx.lineTo(X+scale*.25,Y+scale*.08);ctx.stroke();
+    const fx=X+scale*.28,fy=Y+scale*.12,fw=scale*.62,fh=scale*.43;
+    ctx.fillStyle='#fff';ctx.fillRect(fx,fy,fw,fh);ctx.fillStyle='#202c3e';
+    const sw=fw/4,sh=fh/2;for(let yy=0;yy<2;yy++)for(let xx=0;xx<4;xx++)if((xx+yy)%2===0)ctx.fillRect(fx+xx*sw,fy+yy*sh,sw,sh);
+  }
+}
+function render(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#dceafa';ctx.fillRect(0,0,canvas.width,canvas.height);
+ const x0=Math.max(0,Math.floor(cameraX/scale)),y0=Math.max(0,Math.floor(cameraY/scale)),x1=Math.min(w,Math.ceil((cameraX+canvas.width)/scale)),y1=Math.min(h,Math.ceil((cameraY+canvas.height)/scale));for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const ti=idx(x,y);if(!(playing&&collectedCoins.has(ti)))drawTile(x,y,tileAt(x,y));ctx.strokeStyle='#819db9';ctx.lineWidth=1;ctx.strokeRect(x*scale-cameraX+.5,y*scale-cameraY+.5,scale,scale)}
+ {
+ const px=Math.round((playing?player.x:(Math.max(0,Math.min(w-1,(map.indexOf('start')<0?1:map.indexOf('start')%w)))*scale+scale*.15))-cameraX);
+ const py=Math.round((playing?player.y:(Math.max(0,Math.min(h-1,(map.indexOf('start')<0?h-2:Math.floor(map.indexOf('start')/w))))*scale+scale*.08))-cameraY);
+ // Draw a clearly visible pixel character in both editor and play modes.
+ ctx.fillStyle='#ff9e28';ctx.fillRect(px,py,scale*.70,scale*.82);
+ ctx.fillStyle='#d96a16';ctx.fillRect(px,py+scale*.62,scale*.70,scale*.20);
+ ctx.fillStyle='#172033';ctx.fillRect(px+scale*.14,py+scale*.24,Math.max(3,scale*.12),Math.max(3,scale*.12));ctx.fillRect(px+scale*.48,py+scale*.24,Math.max(3,scale*.12),Math.max(3,scale*.12));
+ ctx.fillStyle='#fff';ctx.fillRect(px+scale*.11,py+scale*.17,Math.max(2,scale*.07),Math.max(2,scale*.07));ctx.fillRect(px+scale*.45,py+scale*.17,Math.max(2,scale*.07),Math.max(2,scale*.07));
+}
+ $('count').textContent=map.filter(Boolean).length+' блоков'}
+function pushHistory(){history.push(map.slice());if(history.length>60)history.shift()}
+function putAt(x,y){if(playing)return;const cx=Math.floor(x),cy=Math.floor(y);if(cx<0||cx>=w||cy<0||cy>=h)return;const i=idx(cx,cy);if(i===lastCell)return;lastCell=i;const value=tool==='erase'?null:tool==='draw'?'grass':tool;if(map[i]===value)return;pushHistory();map[i]=value;render()}
+function pointerCell(e){const r=canvas.getBoundingClientRect();return [((e.clientX-r.left)*canvas.width/r.width+cameraX)/scale,((e.clientY-r.top)*canvas.height/r.height+cameraY)/scale]}
+canvas.addEventListener('pointerdown',e=>{if(playing)return;drawing=true;lastCell=-1;canvas.setPointerCapture(e.pointerId);const p=pointerCell(e);putAt(...p);e.preventDefault()});
+canvas.addEventListener('pointermove',e=>{if(!drawing||playing)return;const p=pointerCell(e);putAt(...p);e.preventDefault()});
+function endDraw(){drawing=false;lastCell=-1}canvas.addEventListener('pointerup',endDraw);canvas.addEventListener('pointercancel',endDraw);
+function selectTool(t){tool=t;document.querySelectorAll('#tools [data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));$('customTool').classList.toggle('active',t==='custom');msg(t==='draw'?'Свободная кисть: рисуй землёй по клеткам.':t==='custom'?'Выбран блок «'+customName+'» цвета '+customColor+'.':'Выбран инструмент: '+t+'.')}
+document.querySelectorAll('#tools [data-tool]').forEach(b=>b.addEventListener('click',()=>selectTool(b.dataset.tool)));
+$('customTool').addEventListener('click',()=>selectTool('custom'));
+$('color').addEventListener('input',e=>{customColor=e.target.value;COLORS.custom=customColor;if(tool==='custom')render()});
+$('spikeColor').addEventListener('input',e=>{spikeColor=e.target.value;render()});
+$('customName').addEventListener('input',e=>{customName=e.target.value||'Свой блок'});
+$('new').addEventListener('click',()=>{const nw=+$('width').value,nh=+$('height').value;if(!Number.isInteger(nw)||!Number.isInteger(nh)||nw<8||nw>500||nh<8||nh>60){msg('Ширина 8–500, высота 8–60.');return}if(confirm('Создать пустую карту? Сначала сохрани нужный уровень.')){stopGame();w=nw;h=nh;map=Array(w*h).fill(null);history=[];cameraX=0;cameraY=0;resizeCanvas();render();msg('Новая пустая карта создана.')}});
+$('undo').addEventListener('click',()=>{if(history.length){map=history.pop();render();msg('Последнее действие отменено.')}});
+$('clear').addEventListener('click',()=>{if(confirm('Очистить поле?')){pushHistory();map=Array(w*h).fill(null);render();msg('Поле очищено.')}});
+function snapshot(){return {format:'pixel-forge-v4',name:$('name').value.trim()||'Без названия',width:w,height:h,tiles:map,customColor,spikeColor,customName}}
+function load(o){if(!o||!Number.isInteger(o.width)||!Number.isInteger(o.height)||o.width<8||o.width>500||o.height<8||o.height>60||!Array.isArray(o.tiles)||o.tiles.length!==o.width*o.height||!o.tiles.every(t=>t===null||(Object.prototype.hasOwnProperty.call(COLORS,t)||t==='spring')))throw Error('Карта повреждена');stopGame();w=o.width;h=o.height;map=o.tiles.slice();customColor=/^#[0-9a-f]{6}$/i.test(o.customColor||'')?o.customColor:'#ff4dca';customName=String(o.customName||'Неон');spikeColor=/^#[0-9a-f]{6}$/i.test(o.spikeColor||'')?o.spikeColor:'#ff365e';$('spikeColor').value=spikeColor;$('color').value=customColor;$('customName').value=customName;$('width').value=w;$('height').value=h;$('name').value=String(o.name||'Уровень').slice(0,55);history=[];cameraX=0;cameraY=0;resizeCanvas();render()}
+const STORE='pixel-forge-v4-levels';
+function getLevels(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch{return []}}
+function refreshLevels(){const list=getLevels(),box=$('levels');box.replaceChildren();if(!list.length){box.innerHTML='<div class="hint">Сохрани карту, чтобы увидеть её здесь.</div>';return}list.forEach((o,i)=>{const row=document.createElement('div');row.className='level';const name=document.createElement('strong');name.textContent=o.name;const open=document.createElement('button');open.textContent='Открыть';open.onclick=()=>{try{load(o);msg('Карта открыта.')}catch{msg('Не удалось открыть карту.')}};const del=document.createElement('button');del.textContent='×';del.onclick=()=>{const a=getLevels();a.splice(i,1);localStorage.setItem(STORE,JSON.stringify(a));refreshLevels()};row.append(name,open,del);box.append(row)})}
+$('save').addEventListener('click',()=>{try{const o=snapshot(),a=getLevels(),i=a.findIndex(v=>v.name===o.name);if(i>=0)a[i]=o;else a.unshift(o);localStorage.setItem(STORE,JSON.stringify(a));refreshLevels();msg('Уровень сохранён в этом браузере.')}catch{msg('Не удалось сохранить уровень.')}});
+$('export').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(snapshot())],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='pixel-forge-level.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);msg('Карта экспортирована.')});
+$('import').addEventListener('click',()=>$('file').click());$('file').addEventListener('change',async e=>{try{load(JSON.parse(await e.target.files[0].text()));msg('Карта импортирована.')}catch{msg('Файл не распознан. Используй JSON из Pixel Forge.')}e.target.value=''});
+function stopGame(){playing=false;won=false;held.left=held.right=false;$('play').textContent='▶ Играть';$('mode').textContent='РЕДАКТОР';$('victory').style.display='none';render()}
+function startGame(){playing=true;won=false;attempts=1;coins=0;collectedCoins=new Set();totalCoins=map.filter(t=>t==='coin').length;const i=map.indexOf('start');player={x:(i<0?1:i%w)*scale,y:(i<0?h-2:Math.floor(i/w))*scale,vx:0,vy:0,ground:false};$('play').textContent='✎ Редактор';$('mode').textContent='ИГРА';render();cameraX=Math.round(Math.max(0,Math.min(Math.max(0,w*scale-canvas.width),player.x-canvas.width*.32)));cameraY=Math.round(Math.max(0,Math.min(Math.max(0,h*scale-canvas.height),player.y-canvas.height*.48)));render();msg('Двигайся влево/вправо и нажимай прыжок отдельно.')}
+function finish(){
+  if(won)return;
+  won=true;
+  held.left=held.right=false;
+  jumpQueued=false;
+  $('play').textContent='▶ Играть';
+  $('mode').textContent='ПОБЕДА';
+  const u=new URL(location.href);
+  try{u.hash='level='+encodeLevel(snapshot());$('victoryUrl').value=u.href;}catch(e){$('victoryUrl').value=location.href;}
+  $('victoryName').textContent=$('name').value||'Мой уровень';
+  $('attemptStat').textContent=attempts;
+  $('coinStat').textContent=coins+'/'+totalCoins;
+  $('victory').style.display='flex';
+  msg('Уровень пройден!');
+}
+function respawn(){const i=map.indexOf('start');player.x=(i<0?1:i%w)*scale;player.y=(i<0?h-2:Math.floor(i/w))*scale;player.vx=0;player.vy=0;player.ground=false;attempts++;coins=0;msg('Не получилось — новая попытка №'+attempts+'.')}
+function physics(dx,jump){if(!playing||won)return;const speed=3.1,gravity=.48,jumpSpeed=-9.1;player.vx=dx*speed;
+ let nx=player.x+player.vx, top=player.y+scale*.12,bottom=player.y+scale*.82;
+ if(player.vx>0){let tx=Math.floor((nx+scale*.7)/scale),y1=Math.floor(top/scale),y2=Math.floor(bottom/scale);if(solid(tileAt(tx,y1))||solid(tileAt(tx,y2)))nx=tx*scale-scale*.7-.1}
+ else if(player.vx<0){let tx=Math.floor(nx/scale),y1=Math.floor(top/scale),y2=Math.floor(bottom/scale);if(solid(tileAt(tx,y1))||solid(tileAt(tx,y2)))nx=(tx+1)*scale+.1}
+ player.x=Math.max(0,Math.min(w*scale-scale*.7,nx));
+ if(jump&&player.ground){player.vy=jumpSpeed;player.ground=false}
+ player.vy=Math.min(10,player.vy+gravity);let ny=player.y+player.vy;top=ny+scale*.12;bottom=ny+scale*.82;player.ground=false;
+ if(player.vy>=0){let ty=Math.floor(bottom/scale),x1=Math.floor((player.x+scale*.18)/scale),x2=Math.floor((player.x+scale*.62)/scale);if(solid(tileAt(x1,ty))||solid(tileAt(x2,ty))){
+    const landing = tileAt(x1,ty)==='spring'||tileAt(x2,ty)==='spring';
+    ny=ty*scale-scale*.82-.1;
+    if(landing){
+      // Launch high enough to rise approximately four grid cells.
+      player.vy=-Math.sqrt(2*gravity*scale*4);
+      player.ground=false;
+    }else{player.vy=0;player.ground=true;}
+  }}
+ else{let ty=Math.floor(top/scale),x1=Math.floor((player.x+scale*.18)/scale),x2=Math.floor((player.x+scale*.62)/scale);if(solid(tileAt(x1,ty))||solid(tileAt(x2,ty))){ny=(ty+1)*scale-scale*.12+.1;player.vy=0}}
+ player.y=ny;
+ if(player.y>h*scale+scale){respawn()}
+ const cx=Math.floor((player.x+scale*.35)/scale),cy=Math.floor((player.y+scale*.45)/scale),t=tileAt(cx,cy);
+ if(t==='spike')respawn();
+ else if(t==='coin'&&!collectedCoins.has(idx(cx,cy))){collectedCoins.add(idx(cx,cy));coins++;msg('Монеты: '+coins+'/'+totalCoins)}
+ else if(t==='finish')finish();
+ render()
+}
+let collectedCoins=new Set(),jumpQueued=false,frameTime=0;function loop(ts){if(playing&&!won&&ts-frameTime>=16){frameTime=ts;const dx=(held.right?1:0)-(held.left?1:0);const jump=jumpQueued;jumpQueued=false;physics(dx,jump);cameraX=Math.round(Math.max(0,Math.min(Math.max(0,w*scale-canvas.width),player.x-canvas.width*.32)));cameraY=Math.round(Math.max(0,Math.min(Math.max(0,h*scale-canvas.height),player.y-canvas.height*.48)));}requestAnimationFrame(loop)}
+$('play').addEventListener('click',()=>playing?stopGame():startGame());
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;const k=e.key.toLowerCase();if(['arrowleft','arrowright','arrowup',' ','a','d','w'].includes(k))e.preventDefault();if(k==='arrowleft'||k==='a')held.left=true;if(k==='arrowright'||k==='d')held.right=true;if((k==='arrowup'||k==='w'||k===' ')&&!e.repeat)jumpQueued=true});
+document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')held.left=false;if(k==='arrowright'||k==='d')held.right=false});
+document.querySelectorAll('[data-move]').forEach(b=>{const m=b.dataset.move;function down(e){e.preventDefault();if(m==='left')held.left=true;if(m==='right')held.right=true;if(m==='jump')jumpQueued=true;if(m==='down')jumpQueued=false}function up(e){e.preventDefault();if(m==='left')held.left=false;if(m==='right')held.right=false}b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);b.addEventListener('lostpointercapture',up)});window.addEventListener('blur',()=>{held.left=held.right=false;drawing=false});document.addEventListener('visibilitychange',()=>{if(document.hidden){held.left=held.right=false;drawing=false}});
+function encodeLevel(o){
+  // Compact tile run-length encoding keeps links shorter for large mostly-empty maps.
+  const kinds=[null,'grass','stone','platform','spike','coin','start','finish','custom','spring'];
+  const runs=[];let last=o.tiles[0],count=0;
+  for(const t of o.tiles){if(t===last&&count<65535)count++;else{runs.push([kinds.indexOf(last),count]);last=t;count=1;}}
+  if(count)runs.push([kinds.indexOf(last),count]);
+  const packed={f:'pf5',n:o.name,w:o.width,h:o.height,c:o.customColor,s:o.spikeColor,b:o.customName,r:runs};
+  const bytes=new TextEncoder().encode(JSON.stringify(packed));let bin='';bytes.forEach(v=>bin+=String.fromCharCode(v));
+  return btoa(bin).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');
+}
+function decodeLevel(s){
+  s=s.replace(/-/g,'+').replace(/_/g,'/');s+='='.repeat((4-s.length%4)%4);
+  const bin=atob(s),o=JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,ch=>ch.charCodeAt(0))));
+  if(o.f==='pf5'){
+    const kinds=[null,'grass','stone','platform','spike','coin','start','finish','custom','spring'],tiles=[];
+    for(const [k,n] of o.r){if(!Number.isInteger(k)||k<0||k>=kinds.length||!Number.isInteger(n)||n<1||tiles.length+n>o.w*o.h)throw Error('bad runs');for(let i=0;i<n;i++)tiles.push(kinds[k]);}
+    if(tiles.length!==o.w*o.h)throw Error('bad size');
+    return {format:'pixel-forge-v5',name:o.n,width:o.w,height:o.h,tiles,customColor:o.c,spikeColor:o.s,customName:o.b};
+  }
+  return o; // compatibility with older shared links
+}
+$('share').addEventListener('click',async()=>{
+  const u=new URL(location.href);
+  u.hash='level='+encodeLevel(snapshot());
+  const shareData={
+    title: ($('name').value||'Мой уровень')+' — PIXEL FORGE',
+    text: 'Попробуй пройти мой уровень в PIXEL FORGE!',
+    url: u.href
+  };
+  // On iPhone/Android, use the native share sheet (AirDrop, Messages, Mail, etc.).
+  // Web Share requires a secure context and a browser that supports it.
+  if(navigator.share && (!navigator.canShare || navigator.canShare(shareData))){
+    try{
+      await navigator.share(shareData);
+      msg('Меню «Поделиться» открыто.');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError'){msg('Отправка отменена.');return;}
+    }
+  }
+  // Fallback for browsers without native sharing.
+  $('url').value=u.href;
+  $('sharebox').style.display='block';
+  msg('Скопируй ссылку или открой меню «Поделиться» в браузере.');
+});
+async function copyInput(id){const input=$(id);try{await navigator.clipboard.writeText(input.value);msg('Ссылка скопирована.')}catch{input.focus();input.select();msg('Ссылка выделена — нажми «Копировать» в меню телефона.')}}
+$('copy').addEventListener('click',()=>copyInput('url'));$('victoryCopy').addEventListener('click',()=>copyInput('victoryUrl'));$('closeShare').addEventListener('click',()=>$('sharebox').style.display='none');$('retry').addEventListener('click',()=>{ $('victory').style.display='none';startGame()});$('toEditor').addEventListener('click',stopGame);
+$('zoom').addEventListener('click',()=>{scale=scale===30?40:scale===40?20:30;resizeCanvas();render();msg('Масштаб изменён.')});
+function pan(dx,dy){cameraX=Math.max(0,Math.min(Math.max(0,w*scale-canvas.width),cameraX+dx*canvas.width*.65));cameraY=Math.max(0,Math.min(Math.max(0,h*scale-canvas.height),cameraY+dy*canvas.height*.65));render()}
+$('camLeft').addEventListener('click',()=>pan(-1,0));$('camRight').addEventListener('click',()=>pan(1,0));$('camUp').addEventListener('click',()=>pan(0,-1));$('camDown').addEventListener('click',()=>pan(0,1));$('camHome').addEventListener('click',()=>{cameraX=0;cameraY=0;render()});
+window.addEventListener('resize',()=>{resizeCanvas();render()});
+
+function openShared(){if(!location.hash.startsWith('#level='))return;try{load(decodeLevel(location.hash.slice(7)));msg('Уровень загружен из ссылки. Нажми «Играть».')}catch{msg('Не удалось прочитать уровень из ссылки.')}}
+map=Array(w*h).fill(null);resizeCanvas();render();refreshLevels();openShared();requestAnimationFrame(loop);
+})();
+</script></body></html>
